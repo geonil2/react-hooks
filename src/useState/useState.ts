@@ -19,28 +19,46 @@ function useState<S>(initialState: S) {
     return dispatcher.useState(initialState); // [state, setState] 형태
 }
 
-// type SetStateAction<s> = s | ((prevState: s) =>s);
-// type Dispatch<A> = (value: A) => void;
-// function useState<s>(initialState: s | (() => s)): [s, Dispatch<SetStateAction<s>>];
-
+/**
+ * New useState
+ */
 // state를 변수로 선언했더니 useState에서 return한 순간 변경할 수 없는 상태가 되서 setState가 이루어지지 않는다.
 // state를 함수(const state = () => value)로 만들어서 해결했으나 react는 state를 useState 외부에 선언해서 해결한다.
 // 이를 클로저로 구현하여 useState를 사용한 함수(Component)가 외부 스코프에서 관리되어 있는 state(ReactCurrentDispatcher)와의 비교를 통해 Rerender 여부를 파악 가능하다.
-let state: any;
+let allState: any = [];
+let setters: any = [];
+let cursor = 0;
+let first = true;
+
+function createSetter(cursor: number) {
+    return function setterWithCursor<S>(newState: S) {
+        allState[cursor] = newState;
+    }
+}
+
 function myUseState<S>(initialState: S): [S, (newState: S) => void] {
-    if (state === undefined) {
-        state = initialState;
-    }
-    state.push(initialState);
-
-    const setState = (newState: S) => {
-        state = newState
+    if (first) {
+        allState.push(initialState);
+        setters.push(createSetter(cursor));
+        first = false;
     }
 
+    const setState = setters[cursor]; // function setterWithCursor(newState)
+    const state = allState[cursor];
+
+    cursor++;
     return [state, setState];
 }
 
-const [number, setNumber] = useState(0);
+/**
+ * Test
+ */
+const [number, setNumber] = myUseState(0);
+const [user, setUser] = myUseState('geonil');
+console.log(allState, setters, cursor, first);
 console.log(number);
-setNumber(1);
+setNumber(number + 1);
+console.log(allState, setters, cursor, first);
+console.log(allState, setters, cursor, first);
+console.log(user)
 console.log(number);
