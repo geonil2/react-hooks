@@ -1,5 +1,5 @@
 /**
- * React Module
+ * React module
  */
 let ReactCurrentDispatcher = { current: null };
 
@@ -20,7 +20,7 @@ function useState<S>(initialState: S) {
 }
 
 /**
- * New useState
+ * My useState
  */
 // state를 변수로 선언했더니 useState에서 return한 순간 변경할 수 없는 상태가 되서 setState가 이루어지지 않는다.
 // state를 함수(const state = () => value)로 만들어서 해결했으나 react는 state를 useState 외부에 선언해서 해결한다.
@@ -37,28 +37,31 @@ function createSetter(cursor: number) {
 }
 
 function myUseState<S>(initialState: S): [S, (newState: S) => void] {
-    if (first) {
+    if (setters.length === cursor) {
         allState.push(initialState);
         setters.push(createSetter(cursor));
         first = false;
     }
 
-    const setState = setters[cursor]; // function setterWithCursor(newState)
     const state = allState[cursor];
+    const setState = setters[cursor]; // function setterWithCursor(newState)
 
     cursor++;
     return [state, setState];
 }
 
 /**
- * Test
+ * My component
  */
-const [number, setNumber] = myUseState(0);
-const [user, setUser] = myUseState('geonil');
-console.log(allState, setters, cursor, first);
-console.log(number);
-setNumber(number + 1);
-console.log(allState, setters, cursor, first);
-console.log(allState, setters, cursor, first);
-console.log(user)
-console.log(number);
+function App () {
+    return myComponent();
+}
+
+function myComponent() {
+    const [number, setNumber] = myUseState(1);
+    setNumber(number + 1);
+    return number; // number는 set 이전 값을 가지고 있음.
+}
+
+console.log(App());
+
